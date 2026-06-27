@@ -236,6 +236,9 @@ def delete_user_readme(request, pk):
     except GeneratedReadme.DoesNotExist:
         return Response({"error": "Record not found."}, status=status.HTTP_404_NOT_FOUND)
 
+from django.views.decorators.csrf import ensure_csrf_cookie
+
+@ensure_csrf_cookie
 def home_page(request):
     # Refreshed to reload env v6
     return render(request, 'api/index.html')
