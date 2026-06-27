@@ -1456,9 +1456,24 @@
                     }
                     startCooldown(cooldownSeconds);
                     
+                    // Check if error is related to quota or 429
+                    let isQuotaExceeded = errorMsg.includes("quota") || errorMsg.includes("RESOURCE_EXHAUSTED") || errorMsg.includes("429");
+                    let alertHtml = "";
+                    if (isQuotaExceeded) {
+                        alertHtml = `
+                            <div class="quota-warning-card" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 12px; color: #fca5a5; font-family: 'Outfit', sans-serif;">
+                                <i class="fa-solid fa-triangle-exclamation" style="font-size: 20px; color: #f87171; margin-top: 2px; flex-shrink: 0;"></i>
+                                <div style="font-size: 14px; line-height: 1.5; text-align: left;">
+                                    <strong style="color: #fff; display: block; margin-bottom: 4px; font-size: 15px;">API Quota Limit Exceeded</strong>
+                                    You exceeded your current quota, please check your plan and billing details.
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
                     // Display error beautifully
                     const errorText = document.getElementById('error-message-text');
-                    errorText.textContent = errorMsg;
+                    errorText.innerHTML = alertHtml + `<pre style="margin: 0; white-space: pre-wrap; font-family: inherit; font-size: inherit; text-align: left;">${escapeHtml(errorMsg)}</pre>`;
                     errorContainer.style.display = 'block';
                     errorContainer.scrollIntoView({ behavior: 'smooth' });
                 }
@@ -1817,6 +1832,12 @@
                 localStorage.setItem('readme_history', JSON.stringify(history));
                 loadHistory();
             }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
     </script>
 </body>
