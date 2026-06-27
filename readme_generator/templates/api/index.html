@@ -268,6 +268,7 @@
             display: flex;
             flex-direction: column;
             gap: 30px;
+            min-width: 0;
         }
 
         .hero-section {
@@ -346,6 +347,7 @@
 
         input[type="url"],
         input[type="text"],
+        input[type="password"],
         select,
         textarea {
             width: 100%;
@@ -640,6 +642,7 @@
             flex-direction: column;
             gap: 20px;
             animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            min-width: 0;
         }
 
         .result-meta-bar {
@@ -854,6 +857,7 @@
             padding: 16px;
             overflow-x: auto;
             margin-bottom: 20px;
+            max-width: 100%;
         }
 
         .markdown-preview pre code {
@@ -977,6 +981,60 @@
     <main>
         <!-- Sidebar containing History and Analytics -->
         <div class="sidebar">
+            <!-- Account Panel -->
+            <div class="glass-panel" id="auth-panel">
+                <div class="sidebar-title">
+                    <i class="fa-solid fa-user-shield" style="color: var(--primary);"></i>
+                    <span id="auth-panel-title">Developer Suite</span>
+                </div>
+                
+                <!-- Logged Out View -->
+                <div id="auth-logged-out" style="display: flex; flex-direction: column; gap: 12px;">
+                    <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 5px;">Sign up or log in to sync your generation history to the database.</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-user input-icon"></i>
+                            <input type="text" id="auth-username" placeholder="Username" style="padding-left: 44px; font-size: 14px; padding-top: 10px; padding-bottom: 10px;">
+                        </div>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-lock input-icon"></i>
+                            <input type="password" id="auth-password" placeholder="Password" style="padding-left: 44px; font-size: 14px; padding-top: 10px; padding-bottom: 10px;">
+                        </div>
+                        
+                        <div id="auth-error-msg" style="color: #f87171; font-size: 12px; display: none; line-height: 1.4; padding-left: 4px;"></div>
+                        
+                        <button type="button" id="auth-submit-btn" class="generate-btn" style="padding: 10px; font-size: 14px;" onclick="handleAuthSubmit()">
+                            <span>Login</span>
+                        </button>
+                        
+                        <div style="text-align: center; font-size: 12px; margin-top: 5px;">
+                            <a href="#" id="auth-toggle-link" style="color: var(--primary); text-decoration: none;" onclick="toggleAuthMode(event)">Create an account</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logged In View -->
+                <div id="auth-logged-in" style="display: none; flex-direction: column; gap: 14px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; font-size: 16px;" id="user-avatar">
+                            D
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 2px;">
+                            <span style="font-size: 14px; font-weight: 600;" id="user-username">Developer</span>
+                            <span style="font-size: 11px; color: var(--success); display: flex; align-items: center; gap: 4px;">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Cloud Sync Active
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="action-icon-btn" style="width: 100%; justify-content: center; padding: 10px; background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); color: #fca5a5;" onclick="handleLogout()">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+
             <div class="glass-panel">
                 <div class="sidebar-title">
                     <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);"></i>
@@ -1169,16 +1227,25 @@
     </footer>
 
     <script>
-        // Global State for generated content
+        // Global State for generated content and auth
         let currentGeneratedReadme = "";
         let currentOwner = "";
         let currentRepo = "";
         let currentBranch = "main";
         let lastGenerationTime = 0;
         
+        let authState = {
+            isAuthenticated: false,
+            username: "",
+            mode: "login" // 'login' or 'signup'
+        };
+
+        // Cache of the history list items (holds database objects or localstorage objects)
+        let currentHistoryItems = [];
+        
         // Initial setup
         document.addEventListener('DOMContentLoaded', () => {
-            loadHistory();
+            checkAuthStatus();
             
             // Setup marked configuration for parsing markdown
             marked.setOptions({
@@ -1424,14 +1491,148 @@
             URL.revokeObjectURL(url);
         }
 
+        // Authentication Handlers
+        async function checkAuthStatus() {
+            try {
+                const res = await fetch('/api/auth/status/');
+                const data = await res.json();
+                authState.isAuthenticated = data.is_authenticated;
+                authState.username = data.username || "";
+                updateAuthUI();
+                await loadHistory();
+            } catch (err) {
+                console.error("Auth status query failed:", err);
+                await loadHistory();
+            }
+        }
+
+        function updateAuthUI() {
+            const loggedOutDiv = document.getElementById('auth-logged-out');
+            const loggedInDiv = document.getElementById('auth-logged-in');
+            const usernameSpan = document.getElementById('user-username');
+            const avatarDiv = document.getElementById('user-avatar');
+            const submitBtnText = document.querySelector('#auth-submit-btn span');
+            const toggleLink = document.getElementById('auth-toggle-link');
+            const errorMsg = document.getElementById('auth-error-msg');
+
+            // Clear inputs and errors
+            document.getElementById('auth-username').value = "";
+            document.getElementById('auth-password').value = "";
+            errorMsg.style.display = 'none';
+
+            if (authState.isAuthenticated) {
+                loggedOutDiv.style.display = 'none';
+                loggedInDiv.style.display = 'flex';
+                usernameSpan.textContent = authState.username;
+                avatarDiv.textContent = authState.username.charAt(0).toUpperCase();
+            } else {
+                loggedOutDiv.style.display = 'flex';
+                loggedInDiv.style.display = 'none';
+                if (authState.mode === 'login') {
+                    submitBtnText.textContent = "Login";
+                    toggleLink.textContent = "Create an account";
+                } else {
+                    submitBtnText.textContent = "Sign Up";
+                    toggleLink.textContent = "Already have an account? Log in";
+                }
+            }
+        }
+
+        function toggleAuthMode(event) {
+            event.preventDefault();
+            authState.mode = authState.mode === 'login' ? 'signup' : 'login';
+            updateAuthUI();
+        }
+
+        async function handleAuthSubmit() {
+            const username = document.getElementById('auth-username').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+            const errorMsg = document.getElementById('auth-error-msg');
+            const submitBtn = document.getElementById('auth-submit-btn');
+
+            if (!username || !password) {
+                errorMsg.textContent = "Username and password are required.";
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            submitBtn.disabled = true;
+            errorMsg.style.display = 'none';
+
+            const endpoint = authState.mode === 'login' ? '/api/auth/login/' : '/api/auth/signup/';
+
+            try {
+                const csrfToken = getCookie('csrftoken');
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await res.json();
+                submitBtn.disabled = false;
+
+                if (res.ok) {
+                    authState.isAuthenticated = true;
+                    authState.username = data.username;
+                    updateAuthUI();
+                    await loadHistory();
+                } else {
+                    errorMsg.textContent = data.error || "Authentication failed.";
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                submitBtn.disabled = false;
+                errorMsg.textContent = "Server connection lost.";
+                errorMsg.style.display = 'block';
+                console.error(err);
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                const csrfToken = getCookie('csrftoken');
+                await fetch('/api/auth/logout/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken }
+                });
+                authState.isAuthenticated = false;
+                authState.username = "";
+                authState.mode = "login";
+                updateAuthUI();
+                await loadHistory();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
         // History Management
-        function saveToHistory(owner, repo, branch, readme, files) {
+        async function saveToHistory(owner, repo, branch, readme, files) {
+            if (authState.isAuthenticated) {
+                await loadHistory();
+                return;
+            }
+
             let history = JSON.parse(localStorage.getItem('readme_history') || '[]');
-            
-            // Remove duplication
             history = history.filter(item => !(item.owner === owner && item.repo === repo));
-            
-            // Insert newest at beginning
             history.unshift({
                 owner,
                 repo,
@@ -1440,27 +1641,55 @@
                 files,
                 timestamp: new Date().getTime()
             });
-
-            // Limit history to 15 items
             if (history.length > 15) {
                 history.pop();
             }
-
             localStorage.setItem('readme_history', JSON.stringify(history));
             loadHistory();
         }
 
-        function loadHistory() {
+        async function loadHistory() {
             const historyList = document.getElementById('history-list');
-            const history = JSON.parse(localStorage.getItem('readme_history') || '[]');
+            
+            if (authState.isAuthenticated) {
+                historyList.innerHTML = '<li class="empty-history"><i class="fa-solid fa-spinner fa-spin"></i> Syncing...</li>';
+                try {
+                    const res = await fetch('/api/history/');
+                    if (res.ok) {
+                        const data = await res.json();
+                        currentHistoryItems = data.map(item => ({
+                            id: item.id,
+                            owner: item.owner,
+                            repo: item.repo,
+                            branch: item.branch,
+                            readme: item.readme_content,
+                            files: item.files_analyzed
+                        }));
+                    } else {
+                        currentHistoryItems = [];
+                    }
+                } catch (err) {
+                    console.error("Failed to load DB history:", err);
+                    currentHistoryItems = [];
+                }
+            } else {
+                const history = JSON.parse(localStorage.getItem('readme_history') || '[]');
+                currentHistoryItems = history.map(item => ({
+                    owner: item.owner,
+                    repo: item.repo,
+                    branch: item.branch,
+                    readme: item.readme,
+                    files: item.files
+                }));
+            }
 
-            if (history.length === 0) {
+            if (currentHistoryItems.length === 0) {
                 historyList.innerHTML = '<li class="empty-history">No repositories generated yet.</li>';
                 return;
             }
 
             historyList.innerHTML = '';
-            history.forEach((item, index) => {
+            currentHistoryItems.forEach((item, index) => {
                 const li = document.createElement('li');
                 li.className = 'history-item';
                 li.onclick = (e) => {
@@ -1473,7 +1702,7 @@
                         <span class="history-repo-name">${item.owner}/${item.repo}</span>
                         <span class="history-repo-owner">branch: ${item.branch}</span>
                     </div>
-                    <button class="history-action-btn" title="Remove history item" onclick="deleteHistoryItem(${index})">
+                    <button class="history-action-btn" title="Remove history item" onclick="deleteHistoryItem(${index}, event)">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 `;
@@ -1482,8 +1711,7 @@
         }
 
         function loadHistoryItem(index) {
-            const history = JSON.parse(localStorage.getItem('readme_history') || '[]');
-            const item = history[index];
+            const item = currentHistoryItems[index];
             if (!item) return;
 
             currentGeneratedReadme = item.readme;
@@ -1491,15 +1719,12 @@
             currentRepo = item.repo;
             currentBranch = item.branch;
 
-            // Set inputs
             document.getElementById('repo_url').value = `https://github.com/${item.owner}/${item.repo}`;
             document.getElementById('branch_name').value = item.branch;
 
-            // Display details
             document.getElementById('display-repo-name').textContent = `${item.owner} / ${item.repo}`;
             document.getElementById('display-branch-name').textContent = item.branch;
 
-            // Build analyzed files tags
             const filesContainer = document.getElementById('display-files-analyzed');
             filesContainer.innerHTML = '<span>Files Analyzed:</span>';
             if (item.files && item.files.length > 0) {
@@ -1516,30 +1741,46 @@
                 filesContainer.appendChild(badge);
             }
 
-            // Parse Markdown to Preview Tab
             document.getElementById('preview-tab').innerHTML = marked.parse(item.readme);
-            // Apply syntax highlighting
             document.querySelectorAll('.markdown-preview pre code').forEach((block) => {
                 hljs.highlightElement(block);
             });
 
-            // Set raw editor text
             document.getElementById('raw-readme-text').value = item.readme;
 
-            // Display container
             document.getElementById('result-container').style.display = 'flex';
             document.getElementById('loading-container').style.display = 'none';
             document.getElementById('error-container').style.display = 'none';
             
-            // Scroll to results
             document.getElementById('result-container').scrollIntoView({ behavior: 'smooth' });
         }
 
-        function deleteHistoryItem(index) {
-            let history = JSON.parse(localStorage.getItem('readme_history') || '[]');
-            history.splice(index, 1);
-            localStorage.setItem('readme_history', JSON.stringify(history));
-            loadHistory();
+        async function deleteHistoryItem(index, event) {
+            if (event) event.stopPropagation();
+            const item = currentHistoryItems[index];
+            if (!item) return;
+
+            if (authState.isAuthenticated && item.id) {
+                try {
+                    const csrfToken = getCookie('csrftoken');
+                    const res = await fetch(`/api/history/${item.id}/delete/`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRFToken': csrfToken }
+                    });
+                    if (res.ok) {
+                        await loadHistory();
+                    } else {
+                        alert("Failed to delete record from the cloud database.");
+                    }
+                } catch (err) {
+                    console.error("Error deleting from DB:", err);
+                }
+            } else {
+                let history = JSON.parse(localStorage.getItem('readme_history') || '[]');
+                history = history.filter(h => !(h.owner === item.owner && h.repo === item.repo && h.branch === item.branch));
+                localStorage.setItem('readme_history', JSON.stringify(history));
+                loadHistory();
+            }
         }
     </script>
 </body>

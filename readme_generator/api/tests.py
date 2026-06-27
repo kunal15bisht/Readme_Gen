@@ -135,3 +135,80 @@ class GenerateReadmeAPITests(APITestCase):
         # Assertions
         self.assertEqual(response.status_code, status.HTTP_502_BAD_GATEWAY)
         self.assertIn("error", response.data)
+
+from django.contrib.auth.models import User
+from api.models import GeneratedReadme
+
+class AuthAndHistoryAPITests(APITestCase):
+    def setUp(self):
+        self.signup_url = reverse('auth_signup')
+        self.login_url = reverse('auth_login')
+        self.logout_url = reverse('auth_logout')
+        self.status_url = reverse('auth_status')
+        self.history_url = reverse('user_readme_history')
+        self.credentials = {"username": "testuser", "password": "testpassword123"}
+
+    def test_signup_successful(self):
+        response = self.client.post(self.signup_url, self.credentials, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["username"], "testuser")
+        self.assertEqual(response.data["status"], "success")
+
+    def test_signup_username_exists(self):
+        User.objects.create_user(username="testuser", password="testpassword123")
+        response = self.client.post(self.signup_url, self.credentials, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("error", response.data)
+
+    def test_login_successful(self):
+        User.objects.create_user(username="testuser", password="testpassword123")
+        response = self.client.post(self.login_url, self.credentials, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["username"], "testuser")
+        
+        # Test status endpoint is now authenticated
+        status_res = self.client.get(self.status_url)
+        self.assertTrue(status_res.data["is_authenticated"])
+        self.assertEqual(status_res.data["username"], "testuser")
+
+    def test_login_invalid_credentials(self):
+        response = self.client.post(self.login_url, self.credentials, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("error", response.data)
+
+    def test_logout_successful(self):
+        user = User.objects.create_user(username="testuser", password="testpassword123")
+        self.client.force_authenticate(user=user)
+        response = self.client.post(self.logout_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_history_anonymous_rejected(self):
+        response = self.client.get(self.history_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_history_authenticated_retrieval_and_delete(self):
+        user = User.objects.create_user(username="testuser", password="testpassword123")
+        self.client.force_authenticate(user=user)
+        
+        # Create a mock readme entry
+        readme_entry = GeneratedReadme.objects.create(
+            user=user,
+            repo_url="https://github.com/django/django",
+            owner="django",
+            repo="django",
+            readme_content="# Django README",
+            tone="technical"
+        )
+
+        # Retrieve history
+        response = self.client.get(self.history_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["owner"], "django")
+        self.assertEqual(response.data[0]["readme_content"], "# Django README")
+
+        # Delete entry
+        delete_url = reverse('delete_user_readme', kwargs={'pk': readme_entry.pk})
+        del_response = self.client.delete(delete_url)
+        self.assertEqual(del_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(GeneratedReadme.objects.filter(user=user).count(), 0)
