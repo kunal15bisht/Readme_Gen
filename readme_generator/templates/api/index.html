@@ -1350,9 +1350,13 @@
                     additional_instructions: additionalInstructions
                 };
 
+                const csrfToken = getCookie('csrftoken');
                 const response = await fetch('/api/generate-readme/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
                     body: JSON.stringify(requestPayload)
                 });
 
