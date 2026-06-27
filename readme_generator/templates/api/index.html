@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI README Generator - Premium Documentation Suite</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Highlight.js for Code Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <!-- Marked.js for Markdown Parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-dark: #09090e;
+            --bg-card: rgba(22, 22, 38, 0.55);
+            --bg-card-hover: rgba(28, 28, 48, 0.7);
+            --border-glow: rgba(139, 92, 246, 0.15);
+            --border-light: rgba(255, 255, 255, 0.08);
+            
+            --primary: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.35);
+            --secondary: #d946ef;
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.2);
+            --accent: #06b6d4;
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dark: #64748b;
+            
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Ambient background glow effects */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -15%;
+            left: 20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            bottom: 10%;
+            right: 10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(217, 70, 239, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        header {
+            padding: 30px 40px 10px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 30%, var(--text-muted) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .github-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-light);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: var(--transition-smooth);
+        }
+
+        .github-badge:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px);
+        }
+
+        main {
+            flex: 1;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 30px 40px;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 30px;
+            position: relative;
+        }
+
+        @media (max-width: 1024px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glassmorphic Panel Base */
+        .glass-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: var(--transition-smooth);
+        }
+
+        .glass-panel:hover {
+            border-color: var(--border-glow);
+        }
+
+        /* Sidebar: History and Stats */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-main);
+        }
+
+        .history-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .history-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .history-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item:hover {
+            background: rgba(139, 92, 246, 0.06);
+            border-color: rgba(139, 92, 246, 0.3);
+            transform: translateX(4px);
+        }
+
+        .history-item-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-width: 80%;
+        }
+
+        .history-repo-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-main);
+        }
+
+        .history-repo-owner {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .history-action-btn {
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            transition: var(--transition-smooth);
+        }
+
+        .history-action-btn:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .empty-history {
+            text-align: center;
+            color: var(--text-dark);
+            font-size: 14px;
+            padding: 30px 10px;
+            border: 1px dashed rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        /* Main Workspace */
+        .workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin: 20px 0 10px 0;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #ffffff 20%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .hero-subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Form styling */
+        .generator-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .input-row {
+                flex-direction: column;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .form-group.repo-input-group {
+            flex: 2;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 4px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            color: var(--text-dark);
+            font-size: 16px;
+        }
+
+        input[type="url"],
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            padding-left: 44px;
+            background: rgba(10, 10, 18, 0.6);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            transition: var(--transition-smooth);
+            outline: none;
+        }
+
+        textarea {
+            padding-left: 16px;
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 44px;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.25);
+            background: rgba(10, 10, 18, 0.9);
+        }
+
+        .expandable-options-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            align-self: flex-start;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 5px;
+            transition: var(--transition-smooth);
+        }
+
+        .expandable-options-btn:hover {
+            color: var(--secondary);
+        }
+
+        .expandable-options {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.06);
+            padding-top: 20px;
+            margin-top: 5px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .generate-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -50%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: skewX(-20deg);
+            transition: 0.75s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(139, 92, 246, 0.6);
+        }
+
+        .generate-btn:hover::after {
+            left: 120%;
+        }
+
+        .generate-btn:active {
+            transform: translateY(1px);
+        }
+
+        .generate-btn:disabled {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-dark);
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Error Card */
+        .error-container {
+            display: none;
+            animation: fadeIn 0.4s ease;
+            margin-top: 10px;
+        }
+
+        .error-panel {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.1);
+        }
+
+        .error-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fca5a5;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .error-icon {
+            font-size: 20px;
+            color: #f87171;
+        }
+
+        .error-close-btn {
+            position: absolute;
+            right: 0;
+            top: -4px;
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            font-size: 22px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .error-close-btn:hover {
+            color: #f87171;
+        }
+
+        .error-body {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #fcd34d;
+            font-family: 'Fira Code', monospace;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* Loading Suite */
+        .loading-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 20px;
+            border-radius: 20px;
+            background: rgba(10, 10, 18, 0.4);
+            border: 1px solid var(--border-light);
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .loading-spinner {
+            width: 70px;
+            height: 70px;
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .spinner-outer {
+            width: 100%;
+            height: 100%;
+            border: 4px solid transparent;
+            border-top-color: var(--primary);
+            border-bottom-color: var(--secondary);
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+        }
+
+        .spinner-inner {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 3px solid transparent;
+            border-left-color: var(--accent);
+            border-right-color: var(--success);
+            border-radius: 50%;
+            animation: spin-reverse 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes spin-reverse {
+            0% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .loading-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .loading-status {
+            color: var(--text-muted);
+            font-size: 14px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .loading-steps {
+            margin-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-align: left;
+            width: 100%;
+            max-width: 320px;
+            font-size: 14px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-dark);
+            transition: var(--transition-smooth);
+        }
+
+        .step-item.active {
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .step-item.completed {
+            color: var(--success);
+        }
+
+        .step-item i {
+            font-size: 12px;
+            width: 16px;
+        }
+
+        /* Results Display */
+        .result-container {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .result-meta-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 16px;
+        }
+
+        .meta-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .repo-title-badge {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .repo-branch-badge {
+            background: rgba(139, 92, 246, 0.12);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #c084fc;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-family: 'Fira Code', monospace;
+            font-weight: 500;
+        }
+
+        .analyzed-files {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .file-badge {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+        }
+
+        .result-tabs-container {
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            background: rgba(10, 10, 18, 0.5);
+            overflow: hidden;
+        }
+
+        .tabs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-light);
+            padding: 0 16px;
+        }
+
+        .tab-buttons {
+            display: flex;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 16px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .tab-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-icon-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-light);
+            color: var(--text-muted);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition-smooth);
+        }
+
+        .action-icon-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border-color: var(--text-dark);
+        }
+
+        .action-icon-btn.primary-action {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #34d399;
+        }
+
+        .action-icon-btn.primary-action:hover {
+            background: var(--success);
+            color: #fff;
+            border-color: var(--success);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .tab-content {
+            padding: 24px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* Preview styling */
+        .markdown-preview {
+            line-height: 1.7;
+            font-size: 15px;
+            color: #e2e8f0;
+        }
+
+        .markdown-preview h1, 
+        .markdown-preview h2, 
+        .markdown-preview h3, 
+        .markdown-preview h4 {
+            color: #fff;
+            font-weight: 700;
+            margin-top: 24px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+        }
+
+        .markdown-preview h1 {
+            font-size: 1.8em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .markdown-preview h2 {
+            font-size: 1.4em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .markdown-preview h3 {
+            font-size: 1.2em;
+        }
+
+        .markdown-preview p,
+        .markdown-preview ul,
+        .markdown-preview ol {
+            margin-bottom: 16px;
+        }
+
+        .markdown-preview ul,
+        .markdown-preview ol {
+            padding-left: 24px;
+        }
+
+        .markdown-preview li {
+            margin-bottom: 6px;
+        }
+
+        .markdown-preview code {
+            font-family: 'Fira Code', monospace;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #f472b6;
+        }
+
+        .markdown-preview pre {
+            background: #0d0e15 !important;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .markdown-preview pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            font-size: 14px;
+        }
+
+        .markdown-preview blockquote {
+            border-left: 4px solid var(--primary);
+            padding-left: 16px;
+            color: var(--text-muted);
+            margin: 20px 0;
+            font-style: italic;
+        }
+
+        .markdown-preview table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .markdown-preview th,
+        .markdown-preview td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        .markdown-preview th {
+            background: rgba(255, 255, 255, 0.03);
+            font-weight: 600;
+        }
+
+        /* Raw view styling */
+        .raw-view {
+            display: none;
+        }
+
+        .raw-textarea {
+            width: 100%;
+            height: 450px;
+            background: #09090e;
+            color: #38bdf8;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            outline: none;
+            resize: none;
+            line-height: 1.5;
+        }
+
+        /* Tips Panel */
+        .tips-panel {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(217, 70, 239, 0.05));
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .tips-icon {
+            font-size: 24px;
+            color: var(--secondary);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .tips-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        .tips-content h4 {
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        footer {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-dark);
+            font-size: 13px;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            max-width: 1400px;
+            margin: 50px auto 0 auto;
+            width: 100%;
+        }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: var(--transition-smooth);
+        }
+
+        footer a:hover {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>ReadmeGen AI</span>
+        </div>
+        <a href="https://github.com" target="_blank" class="github-badge">
+            <i class="fa-brands fa-github"></i>
+            <span>GitHub Portal</span>
+        </a>
+    </header>
+
+    <main>
+        <!-- Sidebar containing History and Analytics -->
+        <div class="sidebar">
+            <div class="glass-panel">
+                <div class="sidebar-title">
+                    <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);"></i>
+                    <span>Generation History</span>
+                </div>
+                <ul class="history-list" id="history-list">
+                    <li class="empty-history">No repositories generated yet.</li>
+                </ul>
+            </div>
+
+            <div class="glass-panel">
+                <div class="sidebar-title">
+                    <i class="fa-solid fa-gears" style="color: var(--accent);"></i>
+                    <span>Quick Tips</span>
+                </div>
+                <div style="font-size: 13px; color: var(--text-muted); line-height: 1.6; display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <strong style="color: #fff; display: block; margin-bottom: 2px;">Public Repositories</strong>
+                        ReadmeGen works with any public repository on GitHub.
+                    </div>
+                    <div>
+                        <strong style="color: #fff; display: block; margin-bottom: 2px;">Smart File Analysis</strong>
+                        We automatically read configuration files like <code>package.json</code>, <code>requirements.txt</code>, and <code>dockerfile</code> to build context.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Workspace containing generation tool -->
+        <div class="workspace">
+            <div class="hero-section">
+                <h1 class="hero-title">Forge Premium Readmes</h1>
+                <p class="hero-subtitle">Convert any public GitHub repository into stunning, standard-compliant README documentation powered by industry-leading LLMs.</p>
+            </div>
+
+            <!-- Configuration panel -->
+            <div class="glass-panel">
+                <form class="generator-form" onsubmit="event.preventDefault();">
+                    <div class="input-row">
+                        <div class="form-group repo-input-group">
+                            <label for="repo_url">GitHub Repository Link</label>
+                            <div class="input-wrapper">
+                                <i class="fa-brands fa-github input-icon"></i>
+                                <input type="url" id="repo_url" placeholder="https://github.com/django/django" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="branch_name">Branch</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-code-branch input-icon"></i>
+                                <input type="text" id="branch_name" placeholder="main" value="main">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="expandable-options-btn" onclick="toggleAdvancedOptions()">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span>Customize Output Style & Instructions</span>
+                        <i class="fa-solid fa-chevron-down" id="options-chevron" style="font-size: 11px; margin-left: 2px; transition: transform 0.3s;"></i>
+                    </button>
+
+                    <!-- Advanced parameters expandable container -->
+                    <div class="expandable-options" id="advanced-options">
+                        <div class="input-row">
+                            <div class="form-group">
+                                <label for="readme_tone">Documentation Tone</label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-scale-balanced input-icon"></i>
+                                    <select id="readme_tone">
+                                        <option value="technical" selected>Technical & Developer-focused</option>
+                                        <option value="beginner-friendly">Beginner Friendly & Visual</option>
+                                        <option value="comprehensive">Comprehensive & Deep Details</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="custom_instructions">Custom Directives / Special Request</label>
+                            <textarea id="custom_instructions" placeholder="e.g. Add a section dedicated to Docker Compose deployment. Emphasize the contributors guild guidelines. Include API usage examples."></textarea>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btn-generate" class="generate-btn" onclick="generateReadme()">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Generate Documentation</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Error Banner Container -->
+            <div class="error-container" id="error-container">
+                <div class="error-panel">
+                    <div class="error-header">
+                        <i class="fa-solid fa-circle-exclamation error-icon"></i>
+                        <span>Generation Interrupted</span>
+                        <button class="error-close-btn" onclick="dismissError()">&times;</button>
+                    </div>
+                    <div class="error-body" id="error-message-text">
+                        Error details here...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loader element -->
+            <div class="loading-container" id="loading-container">
+                <div class="loading-spinner">
+                    <div class="spinner-outer"></div>
+                    <div class="spinner-inner"></div>
+                </div>
+                <h3 class="loading-title">Analyzing & Architecting</h3>
+                <p class="loading-status" id="loading-status">Connecting to repository...</p>
+                
+                <div class="loading-steps">
+                    <div class="step-item" id="step-connect">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i>
+                        <span>Resolving repository tree</span>
+                    </div>
+                    <div class="step-item" id="step-scan">
+                        <i class="fa-regular fa-circle"></i>
+                        <span>Scanning configuration files</span>
+                    </div>
+                    <div class="step-item" id="step-model">
+                        <i class="fa-regular fa-circle"></i>
+                        <span>Writing README with AI</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Showcase -->
+            <div class="result-container" id="result-container">
+                <div class="result-meta-bar">
+                    <div class="meta-left">
+                        <div class="repo-title-badge">
+                            <i class="fa-solid fa-cube" style="color: var(--primary);"></i>
+                            <span id="display-repo-name">owner/repo</span>
+                            <span class="repo-branch-badge" id="display-branch-name">main</span>
+                        </div>
+                        <div class="analyzed-files" id="display-files-analyzed">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-tabs-container">
+                    <div class="tabs-header">
+                        <div class="tab-buttons">
+                            <button class="tab-btn active" id="tab-btn-preview" onclick="switchTab('preview')">
+                                <i class="fa-solid fa-eye" style="margin-right: 6px;"></i>Preview Documentation
+                            </button>
+                            <button class="tab-btn" id="tab-btn-raw" onclick="switchTab('raw')">
+                                <i class="fa-solid fa-code" style="margin-right: 6px;"></i>Raw Code
+                            </button>
+                        </div>
+                        <div class="tab-actions">
+                            <button class="action-icon-btn" onclick="copyReadme()">
+                                <i class="fa-regular fa-copy" id="copy-icon"></i>
+                                <span id="copy-text">Copy Raw</span>
+                            </button>
+                            <button class="action-icon-btn primary-action" onclick="downloadReadme()">
+                                <i class="fa-solid fa-download"></i>
+                                <span>Download</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Markdown rendered Preview -->
+                    <div class="tab-content markdown-preview" id="preview-tab">
+                        <!-- Markdown text will compile here -->
+                    </div>
+
+                    <!-- Raw Text editor -->
+                    <div class="tab-content raw-view" id="raw-tab">
+                        <textarea class="raw-textarea" id="raw-readme-text" readonly></textarea>
+                    </div>
+                </div>
+
+                <div class="tips-panel">
+                    <i class="fa-regular fa-lightbulb tips-icon"></i>
+                    <div class="tips-content">
+                        <h4>Done Generative Processing!</h4>
+                        <p>You can edit or tweak parameters, add custom instructions and generate again to refine it. Download the file and drop it straight into the root of your project.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 ReadmeGen AI. Built for maximum speed, beauty, and developer productivity.</p>
+    </footer>
+
+    <script>
+        // Global State for generated content
+        let currentGeneratedReadme = "";
+        let currentOwner = "";
+        let currentRepo = "";
+        let currentBranch = "main";
+        let lastGenerationTime = 0;
+        
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHistory();
+            
+            // Setup marked configuration for parsing markdown
+            marked.setOptions({
+                highlight: function(code, lang) {
+                    if (lang && hljs.getLanguage(lang)) {
+                        return hljs.highlight(code, { language: lang }).value;
+                    }
+                    return hljs.highlightAuto(code).value;
+                },
+                breaks: true,
+                gfm: true
+            });
+        });
+
+        function toggleAdvancedOptions() {
+            const panel = document.getElementById('advanced-options');
+            const chevron = document.getElementById('options-chevron');
+            if (panel.style.display === 'flex') {
+                panel.style.display = 'none';
+                chevron.style.transform = 'rotate(0deg)';
+            } else {
+                panel.style.display = 'flex';
+                chevron.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        function dismissError() {
+            document.getElementById('error-container').style.display = 'none';
+        }
+
+        function switchTab(tab) {
+            const previewTab = document.getElementById('preview-tab');
+            const rawTab = document.getElementById('raw-tab');
+            const btnPreview = document.getElementById('tab-btn-preview');
+            const btnRaw = document.getElementById('tab-btn-raw');
+
+            if (tab === 'preview') {
+                previewTab.style.display = 'block';
+                rawTab.style.display = 'none';
+                btnPreview.classList.add('active');
+                btnRaw.classList.remove('active');
+            } else {
+                previewTab.style.display = 'none';
+                rawTab.style.display = 'block';
+                btnPreview.classList.remove('active');
+                btnRaw.classList.add('active');
+            }
+        }
+
+        async function generateReadme() {
+            // Cooldown check: 10 seconds between requests
+            const now = Date.now();
+            const cooldownTime = 10000; // 10 seconds
+            if (now - lastGenerationTime < cooldownTime) {
+                const secondsLeft = Math.ceil((cooldownTime - (now - lastGenerationTime)) / 1000);
+                alert(`Please wait ${secondsLeft} second(s) before requesting another README generation to stay within rate limits.`);
+                return;
+            }
+
+            const repoUrl = document.getElementById('repo_url').value.trim();
+            const branch = document.getElementById('branch_name').value.trim() || 'main';
+            const tone = document.getElementById('readme_tone').value;
+            const additionalInstructions = document.getElementById('custom_instructions').value.trim();
+
+            const generateBtn = document.getElementById('btn-generate');
+            const loadingContainer = document.getElementById('loading-container');
+            const resultContainer = document.getElementById('result-container');
+            const errorContainer = document.getElementById('error-container');
+            const statusText = document.getElementById('loading-status');
+
+            if (!repoUrl) {
+                alert("Please input a valid GitHub repository URL.");
+                return;
+            }
+
+            // UI adjustments for generation
+            resultContainer.style.display = 'none';
+            errorContainer.style.display = 'none';
+            loadingContainer.style.display = 'flex';
+            generateBtn.disabled = true;
+
+            // Reset Loading steps
+            setStepState('connect', 'loading');
+            setStepState('scan', 'waiting');
+            setStepState('model', 'waiting');
+            statusText.textContent = "Connecting to repository...";
+
+            // Step 1: Connecting
+            setTimeout(() => {
+                setStepState('connect', 'completed');
+                setStepState('scan', 'loading');
+                statusText.textContent = "Scanning configuration files & project metadata...";
+            }, 1200);
+
+            // Fetch request
+            try {
+                // Prepare request parameters
+                const requestPayload = {
+                    repo_url: repoUrl,
+                    branch: branch,
+                    tone: tone,
+                    additional_instructions: additionalInstructions
+                };
+
+                const response = await fetch('/api/generate-readme/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestPayload)
+                });
+
+                // Transition to LLM step
+                setStepState('scan', 'completed');
+                setStepState('model', 'loading');
+                statusText.textContent = "Prompting AI agent to design documentation...";
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    lastGenerationTime = Date.now();
+                    setStepState('model', 'completed');
+                    statusText.textContent = "Finalizing documentation structure...";
+                    
+                    setTimeout(() => {
+                        // Store current details
+                        currentGeneratedReadme = data.readme;
+                        currentOwner = data.owner;
+                        currentRepo = data.repo;
+                        currentBranch = data.branch;
+
+                        // Display details
+                        document.getElementById('display-repo-name').textContent = `${data.owner} / ${data.repo}`;
+                        document.getElementById('display-branch-name').textContent = data.branch;
+
+                        // Build analyzed files tags
+                        const filesContainer = document.getElementById('display-files-analyzed');
+                        filesContainer.innerHTML = '<span>Files Analyzed:</span>';
+                        if (data.files_analyzed && data.files_analyzed.length > 0) {
+                            data.files_analyzed.forEach(file => {
+                                const badge = document.createElement('span');
+                                badge.className = 'file-badge';
+                                badge.textContent = file;
+                                filesContainer.appendChild(badge);
+                            });
+                        } else {
+                            const badge = document.createElement('span');
+                            badge.className = 'file-badge';
+                            badge.textContent = 'None (Structure only)';
+                            filesContainer.appendChild(badge);
+                        }
+
+                        // Parse Markdown to Preview Tab
+                        document.getElementById('preview-tab').innerHTML = marked.parse(data.readme);
+                        // Apply syntax highlighting
+                        document.querySelectorAll('.markdown-preview pre code').forEach((block) => {
+                            hljs.highlightElement(block);
+                        });
+
+                        // Set raw editor text
+                        document.getElementById('raw-readme-text').value = data.readme;
+
+                        // Show Results
+                        loadingContainer.style.display = 'none';
+                        resultContainer.style.display = 'flex';
+                        generateBtn.disabled = false;
+
+                        // Save to history
+                        saveToHistory(data.owner, data.repo, data.branch, data.readme, data.files_analyzed);
+                    }, 800);
+
+                } else {
+                    lastGenerationTime = Date.now();
+                    loadingContainer.style.display = 'none';
+                    generateBtn.disabled = false;
+                    
+                    // Display error beautifully
+                    const errorText = document.getElementById('error-message-text');
+                    errorText.textContent = data.error || JSON.stringify(data);
+                    errorContainer.style.display = 'block';
+                    errorContainer.scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                lastGenerationTime = Date.now();
+                loadingContainer.style.display = 'none';
+                generateBtn.disabled = false;
+                
+                // Display error beautifully
+                const errorText = document.getElementById('error-message-text');
+                errorText.textContent = "Network error: Could not contact backend server. Please verify your server is running.";
+                errorContainer.style.display = 'block';
+                errorContainer.scrollIntoView({ behavior: 'smooth' });
+                console.error(error);
+            }
+        }
+
+        // Helper to update loading indicator steps
+        function setStepState(stepId, state) {
+            const stepElement = document.getElementById(`step-${stepId}`);
+            if (!stepElement) return;
+
+            if (state === 'waiting') {
+                stepElement.className = 'step-item';
+                stepElement.querySelector('i').className = 'fa-regular fa-circle';
+            } else if (state === 'loading') {
+                stepElement.className = 'step-item active';
+                stepElement.querySelector('i').className = 'fa-solid fa-circle-notch fa-spin';
+            } else if (state === 'completed') {
+                stepElement.className = 'step-item completed';
+                stepElement.querySelector('i').className = 'fa-solid fa-circle-check';
+            }
+        }
+
+        function copyReadme() {
+            const readmeText = document.getElementById('raw-readme-text').value;
+            const copyBtnText = document.getElementById('copy-text');
+            const copyIcon = document.getElementById('copy-icon');
+
+            navigator.clipboard.writeText(readmeText).then(() => {
+                copyBtnText.textContent = "Copied!";
+                copyIcon.className = "fa-solid fa-check";
+                copyIcon.style.color = "var(--success)";
+
+                setTimeout(() => {
+                    copyBtnText.textContent = "Copy Raw";
+                    copyIcon.className = "fa-regular fa-copy";
+                    copyIcon.style.color = "";
+                }, 2000);
+            }).catch(err => {
+                alert("Failed to copy content: " + err);
+            });
+        }
+
+        function downloadReadme() {
+            if (!currentGeneratedReadme) return;
+            
+            const blob = new Blob([currentGeneratedReadme], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'README.md';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // History Management
+        function saveToHistory(owner, repo, branch, readme, files) {
+            let history = JSON.parse(localStorage.getItem('readme_history') || '[]');
+            
+            // Remove duplication
+            history = history.filter(item => !(item.owner === owner && item.repo === repo));
+            
+            // Insert newest at beginning
+            history.unshift({
+                owner,
+                repo,
+                branch,
+                readme,
+                files,
+                timestamp: new Date().getTime()
+            });
+
+            // Limit history to 15 items
+            if (history.length > 15) {
+                history.pop();
+            }
+
+            localStorage.setItem('readme_history', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const historyList = document.getElementById('history-list');
+            const history = JSON.parse(localStorage.getItem('readme_history') || '[]');
+
+            if (history.length === 0) {
+                historyList.innerHTML = '<li class="empty-history">No repositories generated yet.</li>';
+                return;
+            }
+
+            historyList.innerHTML = '';
+            history.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                li.onclick = (e) => {
+                    if (e.target.closest('.history-action-btn')) return;
+                    loadHistoryItem(index);
+                };
+
+                li.innerHTML = `
+                    <div class="history-item-details">
+                        <span class="history-repo-name">${item.owner}/${item.repo}</span>
+                        <span class="history-repo-owner">branch: ${item.branch}</span>
+                    </div>
+                    <button class="history-action-btn" title="Remove history item" onclick="deleteHistoryItem(${index})">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                historyList.appendChild(li);
+            });
+        }
+
+        function loadHistoryItem(index) {
+            const history = JSON.parse(localStorage.getItem('readme_history') || '[]');
+            const item = history[index];
+            if (!item) return;
+
+            currentGeneratedReadme = item.readme;
+            currentOwner = item.owner;
+            currentRepo = item.repo;
+            currentBranch = item.branch;
+
+            // Set inputs
+            document.getElementById('repo_url').value = `https://github.com/${item.owner}/${item.repo}`;
+            document.getElementById('branch_name').value = item.branch;
+
+            // Display details
+            document.getElementById('display-repo-name').textContent = `${item.owner} / ${item.repo}`;
+            document.getElementById('display-branch-name').textContent = item.branch;
+
+            // Build analyzed files tags
+            const filesContainer = document.getElementById('display-files-analyzed');
+            filesContainer.innerHTML = '<span>Files Analyzed:</span>';
+            if (item.files && item.files.length > 0) {
+                item.files.forEach(file => {
+                    const badge = document.createElement('span');
+                    badge.className = 'file-badge';
+                    badge.textContent = file;
+                    filesContainer.appendChild(badge);
+                });
+            } else {
+                const badge = document.createElement('span');
+                badge.className = 'file-badge';
+                badge.textContent = 'None (Structure only)';
+                filesContainer.appendChild(badge);
+            }
+
+            // Parse Markdown to Preview Tab
+            document.getElementById('preview-tab').innerHTML = marked.parse(item.readme);
+            // Apply syntax highlighting
+            document.querySelectorAll('.markdown-preview pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+
+            // Set raw editor text
+            document.getElementById('raw-readme-text').value = item.readme;
+
+            // Display container
+            document.getElementById('result-container').style.display = 'flex';
+            document.getElementById('loading-container').style.display = 'none';
+            document.getElementById('error-container').style.display = 'none';
+            
+            // Scroll to results
+            document.getElementById('result-container').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteHistoryItem(index) {
+            let history = JSON.parse(localStorage.getItem('readme_history') || '[]');
+            history.splice(index, 1);
+            localStorage.setItem('readme_history', JSON.stringify(history));
+            loadHistory();
+        }
+    </script>
+</body>
+</html>

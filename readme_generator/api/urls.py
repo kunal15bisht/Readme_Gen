@@ -15,11 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
+from api.views import generate_readme_api, home_page 
 
 urlpatterns = [
-    # The default admin panel
-    path('admin/', admin.site.urls),
-    path('', include("api.urls"))
+    # 1. The visible website frontend (Loads your index.html at the root URL)
+    path('', home_page, name='home'),
+    
+    # 2. The invisible DRF API Endpoint (Listens for the frontend's data)
+    path('api/generate-readme/', generate_readme_api, name='generate_readme'),
 ]
 
