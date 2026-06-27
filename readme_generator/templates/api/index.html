@@ -1445,11 +1445,20 @@
                 } else {
                     lastGenerationTime = Date.now();
                     loadingContainer.style.display = 'none';
-                    startCooldown(10);
+                    
+                    const errorMsg = data.error || JSON.stringify(data);
+                    
+                    // Parse retry delay from error if present (e.g. for 429 quota exhaustion)
+                    let cooldownSeconds = 10;
+                    const retryMatch = errorMsg.match(/Please retry in (\d+\.?\d*)s/i);
+                    if (retryMatch && retryMatch[1]) {
+                        cooldownSeconds = Math.ceil(parseFloat(retryMatch[1])) + 1;
+                    }
+                    startCooldown(cooldownSeconds);
                     
                     // Display error beautifully
                     const errorText = document.getElementById('error-message-text');
-                    errorText.textContent = data.error || JSON.stringify(data);
+                    errorText.textContent = errorMsg;
                     errorContainer.style.display = 'block';
                     errorContainer.scrollIntoView({ behavior: 'smooth' });
                 }
