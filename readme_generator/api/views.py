@@ -67,10 +67,8 @@ def generate_readme_api(request):
             file_contexts.append(f"--- File: {file_path} ---\n{content[:2000]}")
 
     gemini_key = os.getenv("GEMINI_API_KEY")
-    groq_key = os.getenv("GROQ_API_KEY")
-
-    if not gemini_key and not groq_key:
-        return Response({"error": "Neither GEMINI_API_KEY nor GROQ_API_KEY was found in the environment. Please configure at least one API key in your .env file!"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    if not gemini_key:
+        return Response({"error": "GEMINI_API_KEY was found in the environment. Please configure at least one API key in your .env file!"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     context_string = "\n\n".join(file_contexts)
     tree_string = "\n".join(all_paths[:100])
@@ -107,8 +105,6 @@ def generate_readme_api(request):
     attempts = []
     if gemini_key:
         attempts.append(("gemini", gemini_key))
-    if groq_key:
-        attempts.append(("groq", groq_key))
 
     for api_type, api_key in attempts:
         if api_type == "gemini":
@@ -123,29 +119,6 @@ def generate_readme_api(request):
                     error_details.append(f"Gemini API Error (Status {llm_response.status_code}): {llm_response.text}")
             except Exception as e:
                 error_details.append(f"Failed to connect to Gemini API: {str(e)}")
-        elif api_type == "groq":
-            groq_url = "https://api.groq.com/openai/v1/chat/completions"
-            headers = {
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json"
-            }
-            payload = {
-                "model": "llama-3.3-70b-versatile",
-                "messages": [
-                    {"role": "system", "content": "You are a professional technical writer generating GitHub README.md files."},
-                    {"role": "user", "content": prompt}
-                ],
-                "temperature": 0.2
-            }
-            try:
-                llm_response = requests.post(groq_url, json=payload, headers=headers, timeout=30)
-                if llm_response.status_code == 200:
-                    generated_markdown = llm_response.json()["choices"][0]["message"]["content"]
-                    break
-                else:
-                    error_details.append(f"Groq API Error (Status {llm_response.status_code}): {llm_response.text}")
-            except Exception as e:
-                error_details.append(f"Failed to connect to Groq API: {str(e)}")
 
     if generated_markdown:
         if request.user.is_authenticated:
