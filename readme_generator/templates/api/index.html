@@ -1295,6 +1295,29 @@
             }
         }
 
+        function startCooldown(seconds) {
+            const generateBtn = document.getElementById('btn-generate');
+            generateBtn.disabled = true;
+            let timeLeft = seconds;
+            
+            function updateButtonText() {
+                generateBtn.innerHTML = `<i class="fa-solid fa-hourglass-half fa-spin"></i><span>Cooldown (${timeLeft}s)</span>`;
+            }
+            
+            updateButtonText();
+            
+            const timer = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i><span>Generate Documentation</span>';
+                } else {
+                    updateButtonText();
+                }
+            }, 1000);
+        }
+
         async function generateReadme() {
             // Cooldown check: 10 seconds between requests
             const now = Date.now();
@@ -1413,7 +1436,7 @@
                         // Show Results
                         loadingContainer.style.display = 'none';
                         resultContainer.style.display = 'flex';
-                        generateBtn.disabled = false;
+                        startCooldown(10);
 
                         // Save to history
                         saveToHistory(data.owner, data.repo, data.branch, data.readme, data.files_analyzed);
@@ -1422,7 +1445,7 @@
                 } else {
                     lastGenerationTime = Date.now();
                     loadingContainer.style.display = 'none';
-                    generateBtn.disabled = false;
+                    startCooldown(10);
                     
                     // Display error beautifully
                     const errorText = document.getElementById('error-message-text');
@@ -1433,7 +1456,7 @@
             } catch (error) {
                 lastGenerationTime = Date.now();
                 loadingContainer.style.display = 'none';
-                generateBtn.disabled = false;
+                startCooldown(10);
                 
                 // Display error beautifully
                 const errorText = document.getElementById('error-message-text');
