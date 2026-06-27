@@ -240,5 +240,5 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 @ensure_csrf_cookie
 def home_page(request):
-    # Refreshed to reload env v6
+    # Refreshed to reload env v7
     return render(request, 'api/index.html')
