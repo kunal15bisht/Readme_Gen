@@ -1,13 +1,54 @@
 import os
 import base64
 import requests
+import time
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from django.contrib.auth import authenticate, login as django_login, logout as django_logout
+from django.contrib.auth.models import User
+from django.core.cache import cache
+from .models import GeneratedReadme
+from .serializers import GeneratedReadmeSerializer, RepoRequestSerializer
 
-from .serializers import RepoRequestSerializer
+def check_rate_limits(prompt_length_chars):
+    current_time = time.time()
+    minute_bucket = int(current_time // 60)
+    day_bucket = int(current_time // 86400)
+    
+    rpm_key = f"rate_limit:rpm:{minute_bucket}"
+    tpm_key = f"rate_limit:tpm:{minute_bucket}"
+    rpd_key = f"rate_limit:rpd:{day_bucket}"
+    
+    # 1. RPM Check (Max 10)
+    current_rpm = cache.get(rpm_key, 0)
+    if current_rpm >= 10:
+        reset_seconds = 60 - int(current_time % 60)
+        return False, f"Rate limit exceeded: Requests Per Minute (RPM) limit is 10. Please wait {reset_seconds} seconds."
+        
+    # 2. RPD Check (Max 500)
+    current_rpd = cache.get(rpd_key, 0)
+    if current_rpd >= 500:
+        reset_seconds = 86400 - int(current_time % 86400)
+        reset_hours = (reset_seconds // 3600) + 1
+        return False, f"Rate limit exceeded: Requests Per Day (RPD) limit is 500. Resets in {reset_hours} hour(s)."
+        
+    # 3. TPM Check (Max 250,000)
+    # Estimate tokens: ~4 characters per token
+    estimated_tokens = int(prompt_length_chars // 4)
+    current_tpm = cache.get(tpm_key, 0)
+    if current_tpm + estimated_tokens > 250000:
+        reset_seconds = 60 - int(current_time % 60)
+        return False, f"Rate limit exceeded: Tokens Per Minute (TPM) limit is 250,000 (currently at {current_tpm} + estimated {estimated_tokens} tokens). Please wait {reset_seconds} seconds."
+        
+    # All checks passed, update cache counters
+    cache.set(rpm_key, current_rpm + 1, timeout=60)
+    cache.set(tpm_key, current_tpm + estimated_tokens, timeout=60)
+    cache.set(rpd_key, current_rpd + 1, timeout=86400)
+    
+    return True, None
 
 def fetch_repo_tree(owner, repo, branch="main"):
     headers = {"Accept": "application/vnd.github.v3+json"}
@@ -98,6 +139,11 @@ def generate_readme_api(request):
 
     prompt += "\nGenerate a complete README.md in Markdown format. Do not include conversational text before or after the markdown. Output only the README content."
 
+    # Rate limit check (10 RPM, 500 RPD, 250,000 TPM)
+    allowed, limit_message = check_rate_limits(len(prompt))
+    if not allowed:
+        return Response({"error": limit_message}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
     generated_markdown = ""
     error_details = []
 
@@ -149,10 +195,7 @@ def generate_readme_api(request):
             "error": error_summary
         }, status=status.HTTP_502_BAD_GATEWAY)
 
-from django.contrib.auth import authenticate, login as django_login, logout as django_logout
-from django.contrib.auth.models import User
-from .models import GeneratedReadme
-from .serializers import GeneratedReadmeSerializer
+
 
 @api_view(['POST'])
 def auth_signup(request):

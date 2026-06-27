@@ -44,6 +44,8 @@ class RepoRequestSerializerTests(APITestCase):
 
 class GenerateReadmeAPITests(APITestCase):
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.url = reverse('generate_readme')
         self.valid_payload = {
             "repo_url": "https://github.com/tiangolo/fastapi",
@@ -136,11 +138,43 @@ class GenerateReadmeAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_502_BAD_GATEWAY)
         self.assertIn("error", response.data)
 
+    @patch('api.views.requests.get')
+    @patch('api.views.requests.post')
+    def test_rate_limiting_trigger(self, mock_post, mock_get):
+        from django.core.cache import cache
+        cache.clear()
+        
+        # Mock GitHub Repo Tree
+        mock_tree_response = MagicMock()
+        mock_tree_response.status_code = 200
+        mock_tree_response.json.return_value = {"tree": []}
+        mock_get.return_value = mock_tree_response
+        
+        # Mock LLM response
+        mock_llm_response = MagicMock()
+        mock_llm_response.status_code = 200
+        mock_llm_response.json.return_value = {
+            "candidates": [{"content": {"parts": [{"text": "readme"}]}}]
+        }
+        mock_post.return_value = mock_llm_response
+        
+        # Make 10 successful requests
+        for i in range(10):
+            response = self.client.post(self.url, self.valid_payload, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            
+        # 11th request should fail with 429
+        response = self.client.post(self.url, self.valid_payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+        self.assertIn("Rate limit exceeded", response.data["error"])
+
 from django.contrib.auth.models import User
 from api.models import GeneratedReadme
 
 class AuthAndHistoryAPITests(APITestCase):
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.signup_url = reverse('auth_signup')
         self.login_url = reverse('auth_login')
         self.logout_url = reverse('auth_logout')
